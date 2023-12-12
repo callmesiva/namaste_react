@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { restaurants } from "../../constants";
+import { useEffect, useState } from "react";
 import RestaurantCard from "../body/restaurantCard";
+import SkeletonLoader from "../react-skeleton";
 
-function filterRestaurant(searchText) {
+function filterRestaurant(searchText, restaurants) {
   function formatInput(input) {
     return input.replace(/\s/g, "").toLowerCase();
   }
@@ -14,9 +14,36 @@ function filterRestaurant(searchText) {
 }
 
 const Body = () => {
-  const [searchText, setSearchText] = useState();
+  let [restaurants, setRestaurant] = useState([]);
+  let [filteredRes, setFilterRes] = useState([]);
+  let [searchText, setSearchText] = useState();
 
-  return (
+  async function getData() {
+    let response = await fetch(
+      "https://www.swiggy.com/dapi/restaurants/list/v5?lat=13.0826802&lng=80.2707184&is-seo-homepage-enabled=true&page_type=DESKTOP_WEB_LISTING"
+    );
+    let res = await response.json();
+    setRestaurant(
+      res?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
+    );
+    setFilterRes(
+      res?.data?.cards[2]?.card?.card?.gridElements?.infoWithStyle?.restaurants
+    );
+  }
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  return restaurants.length == 0 ? (
+    <>
+      <div className="skeleton-cards">
+        {Array.from({ length: 12 }, (_, index) => (
+          <SkeletonLoader key={index} />
+        ))}
+      </div>
+    </>
+  ) : (
     <>
       <div className="search-bar">
         <input
@@ -31,7 +58,7 @@ const Body = () => {
         <button
           className="search-btn"
           onClick={() => {
-            console.log(filterRestaurant(searchText));
+            setFilterRes(filterRestaurant(searchText, restaurants));
           }}
         >
           search
@@ -39,12 +66,15 @@ const Body = () => {
       </div>
 
       <div className="restaurantList">
-        {restaurants.map((restaurant) => {
-          console.log(restaurant);
-          return (
-            <RestaurantCard {...restaurant.info} key={restaurant.info.id} />
-          );
-        })}
+        {filteredRes.length == 0 ? (
+          <h1>NO DATA FOUND!</h1>
+        ) : (
+          filteredRes.map((restaurant) => {
+            return (
+              <RestaurantCard {...restaurant.info} key={restaurant.info.id} />
+            );
+          })
+        )}
       </div>
     </>
   );
