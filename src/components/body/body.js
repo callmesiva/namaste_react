@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import RestaurantCard from "../body/restaurantCard";
 import SkeletonLoader from "../react-skeleton";
+import { Link } from "react-router-dom";
 
 function filterRestaurant(searchText, restaurants) {
   function formatInput(input) {
@@ -69,9 +70,14 @@ const Body = () => {
         {filteredRes.length == 0 ? (
           <h1>NO DATA FOUND!</h1>
         ) : (
-          filteredRes.map((restaurant) => {
+          filteredRes.map((restaurant, index) => {
             return (
-              <RestaurantCard {...restaurant.info} key={restaurant.info.id} />
+              <Link
+                to={"/restaurant/" + restaurant.info.id}
+                key={restaurant.info.id}
+              >
+                <RestaurantCard {...restaurant.info} />
+              </Link>
             );
           })
         )}
