@@ -1,23 +1,14 @@
 import { useEffect, useState } from "react";
-import RestaurantCard from "../body/restaurantCard";
-import SkeletonLoader from "../react-skeleton";
+import RestaurantCard from "./RestaurantCard";
+import Shimmer from "../Utils/Shimmer";
 import { Link } from "react-router-dom";
-
-function filterRestaurant(searchText, restaurants) {
-  function formatInput(input) {
-    return input.replace(/\s/g, "").toLowerCase();
-  }
-
-  return restaurants.filter((res) => {
-    if (formatInput(res.info.name).startsWith(formatInput(searchText)))
-      return res;
-  });
-}
+import { filterRestaurant } from "../Utils/Helper";
+import useOnline from "../Utils/CustomHooks/useOnline";
 
 const Body = () => {
+  let [searchText, setSearchText] = useState();
   let [restaurants, setRestaurant] = useState([]);
   let [filteredRes, setFilterRes] = useState([]);
-  let [searchText, setSearchText] = useState();
 
   async function getData() {
     let response = await fetch(
@@ -36,11 +27,17 @@ const Body = () => {
     getData();
   }, []);
 
+  const isOnline = useOnline();
+
+  if (!isOnline) {
+    return <h2>You are Offline, Check Your Connections!</h2>;
+  }
+
   return restaurants.length == 0 ? (
     <>
       <div className="skeleton-cards">
         {Array.from({ length: 12 }, (_, index) => (
-          <SkeletonLoader key={index} />
+          <Shimmer key={index} />
         ))}
       </div>
     </>
